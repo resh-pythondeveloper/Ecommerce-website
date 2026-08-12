@@ -37,8 +37,7 @@ class VendorProfile(models.Model):
         blank=True,
     )
 
-    logo = models.ImageField(
-        upload_to="vendors/logos/",
+    logo = models.JSONField(
         null=True,
         blank=True,
     )

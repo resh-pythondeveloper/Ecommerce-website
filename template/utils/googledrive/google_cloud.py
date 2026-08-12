@@ -127,105 +127,63 @@ def get_or_create_folder(service, name, parent_id=None):
     return folder["id"]
 
 
-# ✅ Upload single file
-# def upload_file_owner_drive(file, app_user):
-#     creds = get_owner_credentials()
-#     service = build('drive', 'v3', credentials=creds)
-
-#     root = get_or_create_folder(service, "MyApp")
-#     user_folder = get_or_create_folder(service, f"user_{app_user.user.id}", root)
-
-#     with tempfile.NamedTemporaryFile(delete=False) as tmp:
-#         for chunk in file.chunks():
-#             tmp.write(chunk)
-#         tmp_path = tmp.name
-
-#     media = MediaFileUpload(tmp_path, resumable=True)
-
-#     uploaded = service.files().create(
-#         body={"name": file.name, "parents": [user_folder]},
-#         media_body=media,
-#         fields="id,name"
-#     ).execute()
-
-#     file_id = uploaded["id"]
-
-#     service.permissions().create(
-#         fileId=file_id,
-#         body={"role": "reader", "type": "anyone"}
-#     ).execute()
-
-#     os.remove(tmp_path)
-
-#     return {
-#         "file_id": file_id,
-#         "url": f"https://drive.google.com/file/d/{file_id}/view"
-#     }
-
-# def upload_file_owner_drive(file, app_user):
-#     creds = get_owner_credentials()
-#     service = build('drive', 'v3', credentials=creds)
-
-#     root = get_or_create_folder(service, "MyApp")
-#     user_folder = get_or_create_folder(service, f"user_{app_user.user.id}", root)
-
-#     file_stream = io.BytesIO(file.read())
-
-#     media = MediaIoBaseUpload(
-#         file_stream,
-#         mimetype=file.content_type,
-#         resumable=True
-#     )
-
-#     uploaded = service.files().create(
-#         body={"name": file.name, "parents": [user_folder]},
-#         media_body=media,
-#         fields="id,name"
-#     ).execute()
-
-#     file_id = uploaded["id"]
-
-#     service.permissions().create(
-#         fileId=file_id,
-#         body={"role": "reader", "type": "anyone"}
-#     ).execute()
-
-#     return {
-#         "file_id": file_id,
-#         "url": f"https://drive.google.com/file/d/{file_id}/view"
-#     }
-
 def upload_file_to_drive(file, folder_name):
     creds = get_owner_credentials()
-    service = build('drive', 'v3', credentials=creds)
 
-    root = get_or_create_folder(service, "MyApp")
-    target_folder = get_or_create_folder(service, folder_name, root)
+    service = build(
+        "drive",
+        "v3",
+        credentials=creds,
+    )
 
-    file_stream = io.BytesIO(file.read())
+    # 1. Check/create root folder
+    root_folder = get_or_create_folder(
+        service,
+        "EcommerceApp",
+    )
+
+    # 2. Check/create customer/vendor folder
+    target_folder = get_or_create_folder(
+        service,
+        folder_name,
+        root_folder,
+    )
+
+    # 3. Read uploaded file
+    file_stream = io.BytesIO(
+        file.read()
+    )
 
     media = MediaIoBaseUpload(
         file_stream,
         mimetype=file.content_type,
-        resumable=True
+        resumable=True,
     )
 
+    # 4. Upload
     uploaded = service.files().create(
-        body={"name": file.name, "parents": [target_folder]},
+        body={
+            "name": file.name,
+            "parents": [target_folder],
+        },
         media_body=media,
-        fields="id,name"
+        fields="id,name",
     ).execute()
 
     file_id = uploaded["id"]
 
+    # 5. Permission
     service.permissions().create(
         fileId=file_id,
-        body={"role": "reader", "type": "anyone"}
+        body={
+            "role": "reader",
+            "type": "anyone",
+        },
     ).execute()
 
     return {
         "file_id": file_id,
-        "url": f"https://drive.google.com/file/d/{file_id}/view"
+        "url": f"https://drive.google.com/file/d/{file_id}/view",
     }
 
 # ✅ Delete file from Google Drive

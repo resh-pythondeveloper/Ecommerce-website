@@ -20,8 +20,7 @@ class CustomerProfile(models.Model):
         blank=True,
     )
 
-    profile_image = models.ImageField(
-        upload_to="customers/profile/",
+    profile_image = models.JSONField(
         null=True,
         blank=True,
     )
@@ -30,6 +29,14 @@ class CustomerProfile(models.Model):
         null=True,
         blank=True,
     )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
+
 
     class Meta:
         db_table="Customer"
