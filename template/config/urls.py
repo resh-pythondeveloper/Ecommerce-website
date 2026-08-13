@@ -21,5 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/auth/",include('apps.accounts.urls')),
     path("api/auth/google/",include('utils.googledrive.urls')),
-    path("api/customers/",include('apps.customers.urls'))
+    path("api/customers/",include('apps.customers.urls')),
+    path("api/admins/",include('apps.admins.urls')),
+    path("api/kam/",include('apps.kam_management.urls')),
+    path("api/vendor/",include("apps.vendors.urls")),
 ]

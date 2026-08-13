@@ -31,7 +31,8 @@ class CustomerSerializer(serializers.ModelSerializer):
 
             image_data = upload_file_to_drive(
                 file=profile_image,
-                folder_name=f"employee_{user.id}",
+                entity_type="Customers",
+                folder_name=f"{user.username}_{user.id}",
             )
 
         customer = CustomerProfile.objects.create(

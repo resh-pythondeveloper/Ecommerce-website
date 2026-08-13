@@ -46,6 +46,24 @@ class UserManager(BaseUserManager):
             "role",
             self.model.Role.ADMIN
         )
+        extra_fields.setdefault(
+            "is_email_verified",
+            True
+        )
+        extra_fields.setdefault(
+            "is_deleted",
+            False
+        )
+
+        if extra_fields.get("is_staff") is not True:
+            raise ValueError(
+                "Superuser must have is_staff=True."
+            )
+
+        if extra_fields.get("is_superuser") is not True:
+            raise ValueError(
+                "Superuser must have is_superuser=True."
+            )
 
         if not password:
             raise ValueError(
@@ -55,5 +73,6 @@ class UserManager(BaseUserManager):
         return self.create_user(
             email=email,
             password=password,
+            username="admin",
             **extra_fields
         )

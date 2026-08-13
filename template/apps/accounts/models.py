@@ -9,6 +9,7 @@ class User(AbstractUser):
         ADMIN = "ADMIN", "Admin"
         VENDOR = "VENDOR", "Vendor"
         CUSTOMER = "CUSTOMER", "Customer"
+        KAM = "KAM", "KAM"
 
     class AuthType(models.TextChoices):
         PASSWORD = "PASSWORD", "Password"

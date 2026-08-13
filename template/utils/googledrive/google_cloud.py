@@ -1,5 +1,4 @@
-import os,io
-import tempfile
+import io
 from django.conf import settings
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
@@ -127,29 +126,61 @@ def get_or_create_folder(service, name, parent_id=None):
     return folder["id"]
 
 
-def upload_file_to_drive(file, folder_name):
+def upload_file_to_drive(
+    file,
+    entity_type,
+    folder_name,
+):
+
     creds = get_owner_credentials()
 
     service = build(
         "drive",
         "v3",
-        credentials=creds,
+        credentials=creds
     )
 
-    # 1. Check/create root folder
+    # -------------------------
+    # Main application folder
+    # -------------------------
+
     root_folder = get_or_create_folder(
         service,
-        "EcommerceApp",
+        "EcommerceApp"
     )
 
-    # 2. Check/create customer/vendor folder
+    # -------------------------
+    # Entity folder
+    # -------------------------
+    #
+    # Example:
+    # KAM
+    # Customers
+    # Vendors
+    # Employees
+    #
+    # -------------------------
+
+    entity_folder = get_or_create_folder(
+        service,
+        entity_type,
+        root_folder
+    )
+
+    # -------------------------
+    # User/entity folder
+    # -------------------------
+
     target_folder = get_or_create_folder(
         service,
         folder_name,
-        root_folder,
+        entity_folder
     )
 
-    # 3. Read uploaded file
+    # -------------------------
+    # Upload file
+    # -------------------------
+
     file_stream = io.BytesIO(
         file.read()
     )
@@ -157,33 +188,39 @@ def upload_file_to_drive(file, folder_name):
     media = MediaIoBaseUpload(
         file_stream,
         mimetype=file.content_type,
-        resumable=True,
+        resumable=True
     )
 
-    # 4. Upload
     uploaded = service.files().create(
         body={
             "name": file.name,
             "parents": [target_folder],
         },
         media_body=media,
-        fields="id,name",
+        fields="id,name"
     ).execute()
 
     file_id = uploaded["id"]
 
-    # 5. Permission
+    # -------------------------
+    # Public read permission
+    # -------------------------
+
     service.permissions().create(
         fileId=file_id,
         body={
             "role": "reader",
             "type": "anyone",
-        },
+        }
     ).execute()
 
     return {
         "file_id": file_id,
-        "url": f"https://drive.google.com/file/d/{file_id}/view",
+        "name": uploaded["name"],
+        "url": (
+            f"https://drive.google.com/"
+            f"file/d/{file_id}/view"
+        ),
     }
 
 # ✅ Delete file from Google Drive

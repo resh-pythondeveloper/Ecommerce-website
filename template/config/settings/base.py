@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'apps.shipping',
     'apps.vendors',
     'apps.wishlist',
+    'apps.kam_management',
     'utils.googledrive'
 ]
 
