@@ -94,7 +94,7 @@ class VendorProfile(models.Model):
             if last_vendor:
                 number = int(
                     last_vendor.vendor_id.replace(
-                        "VENDOR",
+                        "VDR",
                         ""
                     )
                 )
@@ -103,7 +103,7 @@ class VendorProfile(models.Model):
                 next_number = 1
 
             self.vendor_id = (
-                f"VENDOR{next_number:04d}"
+                f"VDR{next_number:04d}"
             )
 
         super().save(*args, **kwargs)

@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404
 from apps.vendors.models import VendorProfile
 from apps.vendors.serializers import VendorSerializer,EmailVerifySerializer
 from apps.accounts.models import User
-from apps.accounts.services.otp_service import OTPService
-from django.core.exceptions import ValidationError
+from django.utils import timezone
+
 
 class VendorAPIView(APIView):
 
@@ -42,74 +42,72 @@ class VendorAPIView(APIView):
             return Response(serializer.data,status=status.HTTP_200_OK)
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
 
+class VendorApprovalView(APIView):
 
-class VendorEmailVerifyView(APIView):
+    def patch(self, request):
 
-    def post(self, request):
+        ids = request.data.get("ids", [])
+        approval_status = request.data.get("status")
 
-        serializer = EmailVerifySerializer(
-            data=request.data
-        )
-
-        serializer.is_valid(
-            raise_exception=True
-        )
-
-        email = serializer.validated_data["email"]
-        otp = serializer.validated_data["otp"]
-
-        user = User.objects.filter(
-            email=email,
-            role=User.Role.VENDOR,
-            is_deleted=False).first()
-
-        if not user:
+        if not ids:
             return Response(
                 {
                     "success": False,
-                    "message": "Vendor not found.",
-                },status=status.HTTP_404_NOT_FOUND,
-            )
-
-        if user.is_email_verified:
-            return Response(
-                {
-                    "success": False,
-                    "message": "Email is already verified.",
+                    "message": "Vendor IDs are required."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        try:
+        allowed_statuses = [
+            VendorProfile.ApprovalStatus.APPROVED,
+            VendorProfile.ApprovalStatus.REJECTED,
+        ]
 
-            OTPService.verify_otp(
-                user=user,otp=otp)
-
-        except ValidationError as e:
-
+        if approval_status not in allowed_statuses:
             return Response(
                 {
                     "success": False,
-                    "message": str(e),
+                    "message": "Invalid approval status."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        user.is_email_verified = True
+        vendors = VendorProfile.objects.filter(
+            id__in=ids,
+            is_deleted=False,
+        )
 
-        user.save(
-            update_fields=[
-                "is_email_verified",
-                "updated_at",
-            ]
+        if not vendors.exists():
+            return Response(
+                {
+                    "success": False,
+                    "message": "No vendors found."
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        update_data = {
+            "approval_status": approval_status,
+        }
+
+        if approval_status == VendorProfile.ApprovalStatus.APPROVED:
+            update_data["approved_at"] = timezone.now()
+
+        elif approval_status == VendorProfile.ApprovalStatus.REJECTED:
+            update_data["approved_at"] = None
+
+        updated_count = vendors.update(
+            **update_data
         )
 
         return Response(
             {
                 "success": True,
                 "message": (
-                    "Email verified successfully. "
-                    "Your vendor account is pending approval."
+                    f"{updated_count} vendor(s) "
+                    f"{approval_status.lower()} successfully."
                 ),
+                "updated_count": updated_count,
             },
-            status=status.HTTP_200_OK,)
+            status=status.HTTP_200_OK,
+        )

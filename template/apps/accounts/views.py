@@ -175,7 +175,7 @@ class LoginView(APIView):
 
         serializer.is_valid(raise_exception=True)
         try:
-            user=AuthService.login_customer(**serializer.validated_data)
+            user=AuthService.login_user(**serializer.validated_data)
             tokens=AuthService.generate_tokens(user=user)
 
             return Response(

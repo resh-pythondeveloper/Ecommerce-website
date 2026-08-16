@@ -18,7 +18,7 @@ class KAMSerializer(serializers.ModelSerializer):
     class Meta:
         model=KAM
         fields="__all__"
-        read_only_fields =["id","user","kam_id","profile_picture","created_at","updated_at","is_deleted"]
+        read_only_fields =["id","user","kam_id","profile_picture","created_at","updated_at","is_active","is_deleted"]
 
     def to_representation(self, instance):
 

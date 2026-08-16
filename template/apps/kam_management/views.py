@@ -1,9 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from apps.kam_management.serializers import KAMSerializer
 from apps.kam_management.models import KAM
+from apps.vendors.models import VendorProfile
 class KAMCreateAPIView(APIView):
 
     def post(self, request):
@@ -74,6 +75,57 @@ class KAMCreateAPIView(APIView):
                 "success": True,
                 "message": "KAM updated successfully.",
                 "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+class AssignKAMToVendor(APIView):
+
+    def patch(self, request, kam_id):
+
+        ids = request.data.get("ids", [])
+
+        if not ids:
+            return Response(
+                {
+                    "success": False,
+                    "message": "Vendor IDs are required.",
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        kam = get_object_or_404(
+            KAM,
+            id=kam_id,
+            is_active=True,
+            is_deleted=False,
+        )
+
+        vendors = VendorProfile.objects.filter(
+            id__in=ids,
+            approval_status=VendorProfile.ApprovalStatus.APPROVED,
+            is_deleted=False,
+        )
+
+        if not vendors.exists():
+            return Response(
+                {
+                    "success": False,
+                    "message": "No approved vendors found.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        updated_count = vendors.update(
+            kam=kam
+        )
+
+        return Response(
+            {
+                "success": True,
+                "message": "KAM assigned successfully.",
+                "updated_count": updated_count,
+                "kam_id": kam.kam_id,
             },
             status=status.HTTP_200_OK,
         )
