@@ -26,5 +26,6 @@ urlpatterns = [
     path("api/kam/",include('apps.kam_management.urls')),
     path("api/vendor/",include("apps.vendors.urls")),
     path("api/category/",include("apps.categories.urls")),
-    path("api/brand/",include("apps.brands.urls"))
+    path("api/brand/",include("apps.brands.urls")),
+    path("api/product/",include("apps.products.urls"))
 ]

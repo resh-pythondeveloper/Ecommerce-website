@@ -80,9 +80,7 @@ class CategorySerializer(serializers.ModelSerializer):
         for field, value in validated_data.items():
             setattr(
                 instance,
-                field,
-                value
-            )
+                field,value)
 
         instance.save()
 

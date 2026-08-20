@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils.text import slugify
+from apps.categories.models import Category
+from apps.brands.models import Brand
 
 class ProductAttribute(models.Model):
 
@@ -8,7 +10,7 @@ class ProductAttribute(models.Model):
     )
 
     category = models.ForeignKey(
-        "categories.Category",
+        Category,
         on_delete=models.CASCADE,
         related_name="attributes"
     )
@@ -55,13 +57,13 @@ class ProductAttributeValue(models.Model):
 class Product(models.Model):
 
     category = models.ForeignKey(
-        "categories.Category",
+        Category,
         on_delete=models.PROTECT,
         related_name="products"
     )
 
     brand = models.ForeignKey(
-        "brands.Brand",
+        Brand,
         on_delete=models.PROTECT,
         related_name="products"
     )
