@@ -127,6 +127,12 @@ class ProductVariantCreateSerializer(serializers.ModelSerializer):
         source="attribute_values",
         required=False
     )
+    initial_stock = serializers.IntegerField(
+        write_only=True,
+        required=False,
+        min_value=0,
+        default=0
+    )
 
     class Meta:
         model = ProductVariant

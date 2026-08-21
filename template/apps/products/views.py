@@ -7,7 +7,7 @@ from rest_framework import status
 from apps.products.models import Product,ProductAttribute,ProductAttributeValue,ProductVariant,VariantAttributeValue
 from apps.products.serializers import ProductSerializer,ProductAttributeSerializer,ProductAttributeValueSerializer,ProductVariantCreateSerializer
 from apps.products.services import ProductService
-
+from apps.inventory.models import Inventory
 
 class ProductView(APIView):
 
@@ -454,6 +454,10 @@ class ProductVariantView(APIView):
             "attribute_values",
             []
         )
+        initial_stock = validated_data.pop(
+            "initial_stock",
+            0
+        )
 
         # ------------------------------------------
         # Validate attributes before creating variant
@@ -513,6 +517,10 @@ class ProductVariantView(APIView):
             product=product,
             sku=sku,
             **validated_data
+        )
+        Inventory.objects.create(
+            variant=variant,
+            stock_quantity=initial_stock
         )
 
         # ------------------------------------------

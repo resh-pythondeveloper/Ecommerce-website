@@ -140,10 +140,6 @@ class ProductVariant(models.Model):
         null=True
     )
 
-    stock = models.PositiveIntegerField(
-        default=0
-    )
-
     is_active = models.BooleanField(
         default=True
     )
